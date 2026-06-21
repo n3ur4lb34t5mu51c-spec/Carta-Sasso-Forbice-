@@ -1,20 +1,42 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# 🪨 Cosa Batte Sasso?
 
-# Run and deploy your AI Studio app
+Una versione italiana del gioco *What Beats Rock*, basata su AI (Gemini). Il giudice è un'IA che decide se la cosa che proponi batte quella precedente.
 
-This contains everything you need to run your app locally.
+Sito statico React + Vite, pensato per essere ospitato su **GitHub Pages**. Le chiamate a Gemini partono direttamente dal browser (vedi `src/gemini.ts`).
 
-View your app in AI Studio: https://ai.studio/apps/9fac81b8-eb3e-4f61-b978-131f53202f12
+## ⚠️ Nota sulla sicurezza della API key
 
-## Run Locally
+Essendo un sito statico, non c'è un server che nasconda la API key: finisce nel bundle JS pubblico. Per limitare gli abusi:
 
-**Prerequisites:**  Node.js
+1. Vai su [Google AI Studio](https://aistudio.google.com/apikey) o nella Google Cloud Console.
+2. Apri le impostazioni della tua API key e **restringila per referrer HTTP**, indicando il dominio del tuo sito GitHub Pages, es. `https://tuoutente.github.io/*`.
 
+## 🚀 Setup in locale
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+**Prerequisiti:** Node.js 20+
+
+```bash
+npm install
+cp .env.example .env
+# inserisci la tua key in .env -> VITE_GEMINI_API_KEY="..."
+npm run dev
+```
+
+## 🌐 Deploy su GitHub Pages
+
+Il repo include un workflow (`.github/workflows/deploy.yml`) che builda e pubblica il sito automaticamente ad ogni push su `main`.
+
+1. Crea un repository su GitHub e carica questi file.
+2. Vai su **Settings → Secrets and variables → Actions** e crea un secret chiamato `VITE_GEMINI_API_KEY` con la tua API key.
+3. Vai su **Settings → Pages** e in "Build and deployment" seleziona come Source: **GitHub Actions**.
+4. Fai push su `main`: il workflow builda con Vite e pubblica automaticamente.
+
+Il sito sarà disponibile su `https://tuoutente.github.io/nome-repo/`.
+
+## 🛠️ Stack
+
+- React 19 + Vite 6 + TypeScript
+- Tailwind CSS 4
+- Motion (animazioni)
+- Lucide React (icone)
+- Gemini API (`@google/genai`) chiamata client-side
