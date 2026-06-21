@@ -1,0 +1,6 @@
+{
+  "name": "Cosa Batte Sasso?",
+  "description": "Una versione italiana del gioco What Beats Rock basata su AI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
