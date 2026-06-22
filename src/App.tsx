@@ -47,7 +47,7 @@ export default function App() {
 
     setIsLoading(true);
     try {
-      const data: BattleResult = await judgeBattle(currentItem.name, currentStr);
+      const data: BattleResult = await judgeBattle(currentItem.name, currentStr, score);
 
       const newItem: GameItem = {
         id: Date.now().toString(),
@@ -80,9 +80,25 @@ export default function App() {
   };
 
   const handleShare = async () => {
-    const text = `Ho appena raggiunto un punteggio di ${score} a "Cosa Batte Sasso?"! 🪨📄✂️\nRiesci a fare di meglio?\nGioca ora!`;
+    const url = window.location.href;
+    const text = `Ho appena raggiunto un punteggio di ${score} a "Cosa Batte Sasso?"! 🪨📄✂️\nRiesci a fare di meglio?`;
+
+    // Su mobile (e alcuni browser desktop) usa la condivisione nativa del
+    // sistema, che apre WhatsApp/Messaggi/Telegram/ecc con testo + link.
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Cosa Batte Sasso?', text, url });
+        return;
+      } catch (err) {
+        // L'utente ha chiuso il foglio di condivisione: non è un errore vero.
+        if ((err as Error)?.name === 'AbortError') return;
+        console.warn('Condivisione nativa non riuscita, copio negli appunti:', err);
+      }
+    }
+
+    // Fallback (desktop senza Web Share API): copia testo + link negli appunti.
     try {
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(`${text}\n${url}`);
       setShowCopiedToast(true);
       setTimeout(() => setShowCopiedToast(false), 2000);
     } catch (err) {
@@ -160,7 +176,7 @@ export default function App() {
               
               <AnimatePresence mode="wait">
                 <motion.form 
-                  key={`form-\${currentItem.id}`}
+                  key={`form-${currentItem.id}`}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: 0.1 }}
