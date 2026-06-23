@@ -5,12 +5,13 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { GameItem, BattleResult } from './types';
-import { RefreshCcw, ArrowRight, Trophy, Sparkles, Share2, Medal, Activity, Check, Shuffle, Play } from 'lucide-react';
+import { RefreshCcw, ArrowRight, Trophy, Sparkles, Share2, Medal, Activity, Check, Shuffle, Play, Volume2, VolumeX } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { judgeBattle } from './gemini';
 import WordImage from './WordImage';
 import { avatarUrl, randomAvatarSeed } from './avatar';
 import { signResult, verifyResult } from './signature';
+import { playClick, playStart, playWin, playLose } from './sounds';
 
 type SharedResult = { name: string; score: number; avatarSeed: string } | null;
 
@@ -41,6 +42,14 @@ export default function App() {
 
   const [playerName, setPlayerName] = useState('');
   const [avatarSeed, setAvatarSeed] = useState(() => randomAvatarSeed());
+  const [isMuted, setIsMuted] = useState(false);
+
+  const sfx = {
+    click: () => !isMuted && playClick(),
+    start: () => !isMuted && playStart(),
+    win: () => !isMuted && playWin(),
+    lose: () => !isMuted && playLose(),
+  };
 
   const [history, setHistory] = useState<GameItem[]>([
     { id: 'initial', name: 'sasso' }
@@ -93,8 +102,10 @@ export default function App() {
 
       if (!data.wins) {
         setGameOver(true);
+        sfx.lose();
       } else {
         setInputValue('');
+        sfx.win();
       }
 
     } catch (err) {
@@ -106,6 +117,8 @@ export default function App() {
   };
 
   const handleBeginFromSetup = () => {
+    if (!playerName.trim()) return;
+    sfx.start();
     setView('playing');
   };
 
@@ -118,6 +131,7 @@ export default function App() {
   };
 
   const handleRestart = () => {
+    sfx.click();
     setHistory([{ id: Date.now().toString(), name: 'sasso' }]);
     setInputValue('');
     setGameOver(false);
@@ -218,7 +232,7 @@ export default function App() {
             />
             <button
               type="button"
-              onClick={() => setAvatarSeed(randomAvatarSeed())}
+              onClick={() => { sfx.click(); setAvatarSeed(randomAvatarSeed()); }}
               className="inline-flex items-center gap-2 text-sm font-semibold text-neutral-500 hover:text-neutral-900 transition-colors"
             >
               <Shuffle className="w-4 h-4" /> Cambia icona
@@ -229,15 +243,19 @@ export default function App() {
             type="text"
             value={playerName}
             onChange={e => setPlayerName(e.target.value)}
-            placeholder="Il tuo nome (opzionale)"
+            onKeyDown={e => { if (e.key === 'Enter') handleBeginFromSetup(); }}
+            placeholder="Il tuo nome *"
             maxLength={30}
-            className="w-full text-lg font-medium p-4 rounded-2xl outline-none placeholder-neutral-300 bg-neutral-50 border border-neutral-200 mb-6 text-center focus:border-neutral-400 transition-colors"
+            required
+            className="w-full text-lg font-medium p-4 rounded-2xl outline-none placeholder-neutral-300 bg-neutral-50 border border-neutral-200 mb-2 text-center focus:border-neutral-400 transition-colors"
             autoComplete="off"
           />
+          <p className="text-xs text-neutral-400 mb-6">Il nome è obbligatorio per iniziare</p>
 
           <button
             onClick={handleBeginFromSetup}
-            className="w-full inline-flex items-center justify-center gap-3 bg-black text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-neutral-800 hover:scale-[1.02] active:scale-95 transition-all shadow-xl"
+            disabled={!playerName.trim()}
+            className="w-full inline-flex items-center justify-center gap-3 bg-black text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-neutral-800 hover:scale-[1.02] active:scale-95 transition-all shadow-xl disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             <Play className="w-5 h-5" /> Inizia a giocare
           </button>
@@ -254,9 +272,18 @@ export default function App() {
           <img src={avatarUrl(avatarSeed)} alt="Avatar" className="w-8 h-8 rounded-full bg-neutral-100 border border-neutral-200" />
           <span className="hidden sm:inline capitalize">{playerName.trim() || 'Cosa Batte Sasso?'}</span>
         </h1>
-        <div className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-neutral-100 rounded-full font-medium text-sm md:text-base border border-neutral-200">
-          <Trophy className="w-4 h-4 text-yellow-500" />
-          Punteggio: {score}
+        <div className="flex items-center gap-2 md:gap-3">
+          <button
+            onClick={() => setIsMuted(m => !m)}
+            aria-label={isMuted ? 'Attiva suoni' : 'Disattiva suoni'}
+            className="p-2 md:p-2.5 rounded-full bg-neutral-100 border border-neutral-200 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200 transition-colors"
+          >
+            {isMuted ? <VolumeX className="w-4 h-4 md:w-5 md:h-5" /> : <Volume2 className="w-4 h-4 md:w-5 md:h-5" />}
+          </button>
+          <div className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-neutral-100 rounded-full font-medium text-sm md:text-base border border-neutral-200">
+            <Trophy className="w-4 h-4 text-yellow-500" />
+            Punteggio: {score}
+          </div>
         </div>
       </header>
 
