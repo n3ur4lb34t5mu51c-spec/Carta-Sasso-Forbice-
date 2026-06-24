@@ -56,6 +56,7 @@ export default function App() {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [duplicateWarning, setDuplicateWarning] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const [totalMoves, setTotalMoves] = useState(0);
   const [sessionRecord, setSessionRecord] = useState(0);
@@ -85,6 +86,15 @@ export default function App() {
     e.preventDefault();
     const currentStr = inputValue.trim().toLowerCase();
     if (!currentStr || isLoading || gameOver) return;
+
+    // Parola già usata in questa partita: niente chiamata al giudice, solo un avviso.
+    const alreadyUsed = history.some(item => item.name === currentStr);
+    if (alreadyUsed) {
+      setDuplicateWarning(true);
+      setTimeout(() => setDuplicateWarning(false), 2500);
+      return;
+    }
+    setDuplicateWarning(false);
 
     setIsLoading(true);
     try {
@@ -135,6 +145,7 @@ export default function App() {
     setHistory([{ id: Date.now().toString(), name: 'sasso' }]);
     setInputValue('');
     setGameOver(false);
+    setDuplicateWarning(false);
     // Una nuova icona casuale ad ogni nuova partita.
     setAvatarSeed(randomAvatarSeed());
   };
@@ -386,6 +397,14 @@ export default function App() {
                     className="text-neutral-500 text-sm md:text-base font-medium animate-pulse"
                   >
                     Il giudice sta pensando...
+                  </motion.p>
+                )}
+                {!isLoading && duplicateWarning && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
+                    className="text-red-500 text-sm md:text-base font-semibold"
+                  >
+                    Hai già usato questa parola in questa partita: provane un'altra!
                   </motion.p>
                 )}
               </div>

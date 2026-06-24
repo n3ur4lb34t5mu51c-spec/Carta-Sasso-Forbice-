@@ -9,6 +9,7 @@
  */
 
 import { BattleResult } from './types';
+import { classicOverride } from './classicRules';
 
 type Tier = { keywords: string[]; level: number };
 
@@ -127,6 +128,9 @@ function pick<T>(arr: T[]): T {
  * vincere ancora, per evitare partite infinite.
  */
 export function judgeBattle(previous: string, current: string, streak: number = 0): Promise<BattleResult> {
+  const classic = classicOverride(previous, current);
+  if (classic) return Promise.resolve(classic);
+
   const prevTier = getTier(previous);
   const currTier = getTier(current);
   const diff = currTier - prevTier;

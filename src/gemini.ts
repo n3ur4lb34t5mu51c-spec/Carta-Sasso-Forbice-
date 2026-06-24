@@ -6,6 +6,7 @@
 import { GoogleGenAI, Type } from '@google/genai';
 import { BattleResult } from './types';
 import { judgeBattle as judgeBattleLocal } from './judge';
+import { classicOverride } from './classicRules';
 
 // NOTA SULLA SICUREZZA:
 // Sito statico (GitHub Pages), nessun backend: la API key viene iniettata
@@ -108,6 +109,11 @@ async function callGemini(previous: string, current: string): Promise<BattleResu
 }
 
 export async function judgeBattle(previous: string, current: string, streak: number = 0): Promise<BattleResult> {
+  // 0. Regole classiche (sasso/carta/forbice): risultato garantito corretto,
+  //    nessuna IA coinvolta, nessuna chiamata sprecata.
+  const classic = classicOverride(previous, current);
+  if (classic) return classic;
+
   // 1. Cache: se questa coppia è già stata giudicata su questo browser, riusala.
   const cached = getCached(previous, current);
   if (cached) return cached;
